@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be 動詞縮寫遊戲</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, "Microsoft JhengHei", sans-serif;
+  background: linear-gradient(135deg,#fdf3c8,#ffe0f0,#dff6ff);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+/* 標題區 */
+.header {
+  text-align: center;
+  background: #ffffffcc;
+  border-radius: 16px;
+  padding: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 36px;
+}
+
+.subtitle {
+  font-size: 20px;
+}
+
+/* 分數區 */
+.score-board {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  gap: 10px;
+}
+
+.badge {
+  flex: 1;
+  background: white;
+  text-align: center;
+  font-size: 22px;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* 主卡片 */
+.card {
+  flex: 1;
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 題目 */
+.level-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.question {
+  text-align: center;
+  font-size: 40px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+/* 選項 */
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+button {
+  font-size: 28px;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: #fff4a3;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #ffe066;
+}
+
+.next-btn {
+  margin-top: 10px;
+  background: #8de0a6;
+}
+
+/* 回饋 */
+.feedback {
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+  height: 36px;
+}
+
+.correct {
+  color: green;
+}
+
+.wrong {
+  color: red;
+}
+
+/* 結束畫面 */
+.finish {
+  text-align: center;
+}
+
+.finish h2 {
+  font-size: 40px;
+}
+
+.finish p {
+  font-size: 26px;
+}
+
+.table {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.table div {
+  font-size: 22px;
+  background: #f0f0ff;
+  padding: 10px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+  <div class="header">
+    <h1>Be 動詞縮寫練習</h1>
+    <div class="subtitle">Subject Pronoun Contractions</div>
+  </div>
+
+  <div class="score-board">
+    <div class="badge">分數：<span id="score">0</span></div>
+    <div class="badge">題目：<span id="progress">1</span>/<span id="total">0</span></div>
+  </div>
+
+  <div class="card" id="gameCard"></div>
+</div>
+
+<script>
+const questions = [
+  {level:"配對",question:"I am",options:["I'm","He's","We're","They're"],answer:"I'm"},
+  {level:"配對",question:"He is",options:["I'm","He's","She's","You're"],answer:"He's"},
+  {level:"配對",question:"They are",options:["They're","It's","She's","We're"],answer:"They're"},
+  {level:"填空",question:"I ____ Diana.",options:["am","is","are","be"],answer:"am"},
+  {level:"填空",question:"He ____ 10.",options:["am","is","are","be"],answer:"is"},
+  {level:"填空",question:"We ____ late.",options:["am","is","are","be"],answer:"are"},
+  {level:"變身",question:"She is from California.",options:[
+    "She's from California.","She're from California.","She am from California.","Shes from California."
+  ],answer:"She's from California."},
+  {level:"變身",question:"You are late.",options:[
+    "You're late.","You's late.","Your late.","Youre late."
+  ],answer:"You're late."},
+  {level:"變身",question:"It is a big city.",options:[
+    "It's a big city.","Its a big city.","It are a big city.","It'm a big city."
+  ],answer:"It's a big city."}
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+const gameCard = document.getElementById("gameCard");
+const scoreEl = document.getElementById("score");
+const progressEl = document.getElementById("progress");
+const totalEl = document.getElementById("total");
+
+totalEl.textContent = questions.length;
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  progressEl.textContent = current + 1;
+
+  gameCard.innerHTML = `
+    <div class="level-title">${q.level}</div>
+    <div class="question">${q.question}</div>
+    <div class="options">
+      ${q.options.map(o => `<button onclick="checkAnswer('${o.replace(/'/g,"\\'")}')">${o}</button>`).join("")}
+    </div>
+    <div class="feedback" id="feedback"></div>
+  `;
+}
+
+function checkAnswer(option) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const feedback = document.getElementById("feedback");
+
+  if (option === q.answer) {
+    score += 10;
+    scoreEl.textContent = score;
+    feedback.innerHTML = "正確 +10";
+    feedback.className = "feedback correct";
+  } else {
+    feedback.innerHTML = "錯誤 → " + q.answer;
+    feedback.className = "feedback wrong";
+  }
+
+  gameCard.innerHTML += `<button class="next-btn" onclick="next()">下一題</button>`;
+}
+
+function next() {
+  current++;
+  if (current < questions.length) {
+    renderQuestion();
+  } else {
+    finish();
+  }
+}
+
+function finish() {
+  gameCard.innerHTML = `
+    <div class="finish">
+      <h2>完成！</h2>
+      <p>分數：${score}/${questions.length*10}</p>
+      <div class="table">
+        <div>I am → I'm</div>
+        <div>He is → He's</div>
+        <div>She is → She's</div>
+        <div>It is → It's</div>
+        <div>We are → We're</div>
+        <div>You are → You're</div>
+        <div>They are → They're</div>
+      </div>
+      <button class="next-btn" onclick="restart()">重新開始</button>
+    </div>
+  `;
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  scoreEl.textContent = 0;
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+
+</body>
+</html>
